@@ -43,3 +43,9 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+/assests/photo1.png
+/assests/photo2.png
+/assests/photo3.jpg
+/assests/photo4.jpg
+
+

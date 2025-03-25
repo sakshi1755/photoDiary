@@ -53,20 +53,22 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
- fonts:
+   assets:
+          - assets/photo1.png
+          - assets/photo2.png
+          - assets/photo3.jpg
+          - assets/photo4.jpg
+   fonts:
     - family: Pacifico
       fonts:
         - asset: assets/fonts/Pacifico-Regular.ttf
-assets:
-    - assets/photo1.png
-    - assets/photo3.jpg
-    - assets/photo2.png
-    - assets/photo4.jpg
+
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
-uses-material-design: true
+  
+   uses-material-design: true
 
   # To add assets to your application, add an assets section, like this:
   # assets:
