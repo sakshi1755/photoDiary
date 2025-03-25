@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, avoid_print
+
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -7,7 +9,7 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
+  const MyApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -31,7 +33,7 @@ class PhotoEntry {
 }
 
 class PhotoListScreen extends StatefulWidget {
-  const PhotoListScreen({Key? key}) : super(key: key);
+  const PhotoListScreen({super.key});
 
   @override
   _PhotoListScreenState createState() => _PhotoListScreenState();
@@ -285,36 +287,43 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
   Widget _buildImageWidget(String imagePath) {
     try {
       if (imagePath.startsWith('assets/')) {
-        return Image.asset(
-          imagePath, 
-          width: double.infinity, 
-          height: 300, 
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print('Error loading asset image: $error');
-            return Container(
-              width: double.infinity,
-              height: 300,
-              color: Colors.grey[300],
-              child: const Center(child: Text('Image failed to load')),
-            );
-          },
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.asset(
+            imagePath, 
+            width: double.infinity, 
+            height: 300, 
+            
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading asset image: $error');
+              return Container(
+                width: double.infinity,
+                height: 300,
+                color: Colors.grey[300],
+                child: const Center(child: Text('Image failed to load')),
+              );
+            },
+          ),
         );
       } else {
-        return Image.file(
-          File(imagePath), 
-          width: double.infinity, 
-          height: 300, 
-          fit: BoxFit.cover,
-          errorBuilder: (context, error, stackTrace) {
-            print('Error loading file image: $error');
-            return Container(
-              width: double.infinity,
-              height: 300,
-              color: Colors.grey[300],
-              child: const Center(child: Text('Image failed to load')),
-            );
-          },
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Image.file(
+            File(imagePath), 
+            width: double.infinity, 
+            height: 300, 
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('Error loading file image: $error');
+              return Container(
+                width: double.infinity,
+                height: 300,
+                color: Colors.grey[300],
+                child: const Center(child: Text('Image failed to load')),
+              );
+            },
+          ),
         );
       }
     } catch (e) {
@@ -338,8 +347,8 @@ class PhotoDetailsScreen extends StatelessWidget {
     required this.image, 
     required this.caption, 
     required this.entry, 
-    Key? key
-  }) : super(key: key);
+    super.key
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -348,24 +357,41 @@ class PhotoDetailsScreen extends StatelessWidget {
         title: const Text("📷 Photo Details"),
         backgroundColor: Colors.pinkAccent,
       ),
-      body: Column(
-        children: [
-          Image.asset(
-            image, 
-            width: 300, 
-            height: 300, 
-            fit: BoxFit.cover
-          ), 
-          Text(
-            caption, 
-            style: const TextStyle(
-              fontSize: 22, 
-              fontWeight: FontWeight.bold
-            )
-          ), 
-          Text(entry)
-        ],
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildImageWidget(image),
+            const SizedBox(height: 10),
+            Text(
+              caption, 
+              style: const TextStyle(
+                fontSize: 22, 
+                fontWeight: FontWeight.bold
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0),
+              child: Text(
+                entry,
+                style: const TextStyle(fontSize: 16),
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ],
+        ),
       ),
     );
+  }
+
+  Widget _buildImageWidget(String imagePath) {
+    if (imagePath.startsWith('assets/')) {
+      return Image.asset(imagePath, width: 300, height: 300, fit: BoxFit.cover);
+    } else {
+      return Image.file(File(imagePath), width: 300, height: 300, fit: BoxFit.cover);
+    }
   }
 }
