@@ -1,10 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart'; 
 import 'package:image_picker/image_picker.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io';
+import 'dart:convert';
 import 'package:intl/intl.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(
+    ScreenUtilInit(
+      designSize: const Size(360, 690), // Base design size
+      //minTextAdaptWidth: 350,
+      splitScreenMode: true,
+      builder: (context, child) => const MyApp(),
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -14,6 +24,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        // Responsive text scaling
+        textTheme: TextTheme(
+          displayLarge: TextStyle(fontSize: 20.sp),
+          bodyLarge: TextStyle(fontSize: 16.sp),
+        ),
+      ),
       home: const PhotoListScreen(),
     );
   }
@@ -46,33 +63,69 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
   List<PhotoEntry> photos = [
     PhotoEntry(
       image: 'assets/photo1.png',
-      caption: 'A Beautiful Sunset',
-      entry: 'This was a magical evening by the beach, watching the sun go down.',
-      date: DateTime(2024, 3, 15),
+      caption: 'Inter IIT Cult at patna',
+      entry: 'This was a magical evening in patna, after my play.',
+      date: DateTime(2024, 12, 31),
       isexpanded: false
     ),
     PhotoEntry(
       image: 'assets/photo2.png',
-      caption: 'Fun at the Beach',
-      entry: 'Spent the day playing volleyball and enjoying the waves with friends.',
-      date: DateTime(2024, 3, 20),
+      caption: 'Ethnic night at IIT bhilai by EBSB',
+      entry: 'Was wearing a preety half saree and had a lot of fun.',
+      date: DateTime(2025, 1, 25),
       isexpanded: false
     ),
     PhotoEntry(
       image: 'assets/photo3.jpg',
-      caption: 'Hiking Adventure',
-      entry: 'Hiked 10 km today! The view from the top was absolutely breathtaking.',
-      date: DateTime(2024, 3, 25),
+      caption: 'Just some pretty selfies',
+      entry: 'Just took a lot of selfies at IIT patna . The view from the top of their hostel was absolutely breathtaking.',
+      date: DateTime(2024, 12, 31),
       isexpanded: false
     ),
     PhotoEntry(
       image: 'assets/photo4.jpg',
-      caption: 'Chilling with friends',
-      entry: 'A great weekend spent laughing, sharing stories, and making memories.',
-      date: DateTime(2024, 3, 30),
+      caption: 'Just a mirror selfie before going out ',
+      entry: 'A great day spent laughing, eating lot of food, and making memories.',
+      date: DateTime(2025, 1, 14),
       isexpanded: false
     ),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPhotos();
+  }
+
+  Future<void> _savePhotos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final photosJson = photos.map((photo) => {
+      'image': photo.image,
+      'caption': photo.caption,
+      'entry': photo.entry,
+      'date': photo.date.toIso8601String(),
+      'isexpanded': photo.isexpanded
+    }).toList();
+    await prefs.setString('photoEntries', json.encode(photosJson));
+  }
+
+  Future<void> _loadPhotos() async {
+    final prefs = await SharedPreferences.getInstance();
+    final photosJson = prefs.getString('photoEntries');
+    
+    if (photosJson != null) {
+      final List<dynamic> decodedPhotos = json.decode(photosJson);
+      setState(() {
+        photos = decodedPhotos.map((photoJson) => PhotoEntry(
+          image: photoJson['image'] ?? 'assets/photo1.png',
+          caption: photoJson['caption'] ?? 'A Beautiful Sunset',
+          entry: photoJson['entry'] ?? '',
+          date: DateTime.parse(photoJson['date'] ?? DateTime.now().toIso8601String()),
+          isexpanded: photoJson['isexpanded'] ?? false
+        )).toList();
+      });
+    }
+  }
 
   void _editEntry(int index) {
     final TextEditingController entryController = TextEditingController(text: photos[index].entry);
@@ -81,25 +134,29 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Edit Entry"),
+          title: Text("Edit Entry", style: TextStyle(fontSize: 18.sp)),
           content: TextField(
             controller: entryController,
             maxLines: 4,
-            decoration: const InputDecoration(labelText: "Update your entry"),
+            decoration: InputDecoration(
+              labelText: "Update your entry",
+              labelStyle: TextStyle(fontSize: 14.sp),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel", style: TextStyle(fontSize: 14.sp)),
             ),
             TextButton(
               onPressed: () {
                 setState(() {
                   photos[index].entry = entryController.text;
                 });
+                _savePhotos();
                 Navigator.pop(context);
               },
-              child: const Text("Save"),
+              child: Text("Save", style: TextStyle(fontSize: 14.sp)),
             ),
           ],
         );
@@ -114,24 +171,62 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Edit Caption"),
+          title: Text("Edit Caption", style: TextStyle(fontSize: 18.sp)),
           content: TextField(
             controller: captionController,
-            decoration: const InputDecoration(labelText: "Update your caption"),
+            decoration: InputDecoration(
+              labelText: "Update your caption",
+              labelStyle: TextStyle(fontSize: 14.sp),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel", style: TextStyle(fontSize: 14.sp)),
             ),
             TextButton(
               onPressed: () {
                 setState(() {
                   photos[index].caption = captionController.text;
                 });
+                _savePhotos();
                 Navigator.pop(context);
               },
-              child: const Text("Save"),
+              child: Text("Save", style: TextStyle(fontSize: 14.sp)),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteEntry(int index) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text("Delete Entry", style: TextStyle(fontSize: 18.sp)),
+          content: Text(
+            "Are you sure you want to delete this photo entry?", 
+            style: TextStyle(fontSize: 14.sp)
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text("Cancel", style: TextStyle(fontSize: 14.sp)),
+            ),
+            TextButton(
+              onPressed: () {
+                setState(() {
+                  photos.removeAt(index);
+                });
+                _savePhotos();
+                Navigator.pop(context);
+              },
+              child: Text(
+                "Delete", 
+                style: TextStyle(fontSize: 14.sp, color: Colors.red)
+              ),
             ),
           ],
         );
@@ -157,27 +252,33 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Add Photo Entry"),
+          title: Text("Add Photo Entry", style: TextStyle(fontSize: 18.sp)),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.file(File(image), height: 150, width: 150, fit: BoxFit.cover),
-              const SizedBox(height: 10),
+              Image.file(File(image), height: 150.h, width: 150.w, fit: BoxFit.cover),
+              SizedBox(height: 10.h),
               TextField(
                 controller: captionController,
-                decoration: const InputDecoration(labelText: "Caption"),
+                decoration: InputDecoration(
+                  labelText: "Caption",
+                  labelStyle: TextStyle(fontSize: 14.sp),
+                ),
               ),
-              const SizedBox(height: 10),
+              SizedBox(height: 10.h),
               TextField(
                 controller: entryController,
-                decoration: const InputDecoration(labelText: "Entry"),
+                decoration: InputDecoration(
+                  labelText: "Entry",
+                  labelStyle: TextStyle(fontSize: 14.sp),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text("Cancel"),
+              child: Text("Cancel", style: TextStyle(fontSize: 14.sp)),
             ),
             TextButton(
               onPressed: () {
@@ -190,9 +291,10 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
                     isexpanded: false
                   ));
                 });
+                _savePhotos();
                 Navigator.pop(context);
               },
-              child: const Text("Save"),
+              child: Text("Save", style: TextStyle(fontSize: 14.sp)),
             ),
           ],
         );
@@ -202,13 +304,15 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    photos.sort((a, b) => b.date.compareTo(a.date));
+
     return Scaffold(
-          appBar: AppBar(
-        title: const Text(
+      appBar: AppBar(
+        title: Text(
           '🌸 Photo Diary 🌸',
           style: TextStyle(
             fontFamily: 'Pacifico',
-            fontSize: 26,
+            fontSize: 26.sp,
             fontWeight: FontWeight.w300,
             color: Colors.white,
           ),
@@ -236,114 +340,151 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
             ),
           ),
         ),
-      ),
-      body: ListView.builder(
-        itemCount: photos.length,
-        itemBuilder: (context, index) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 20.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey.shade300, width: 4),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Colors.black26, 
-                        blurRadius: 6, 
-                        spreadRadius: 2, 
-                        offset: Offset(3, 5)
-                      )
-                    ],
-                  ),
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: GestureDetector(
-                          onTap: () {
-                            setState(() {
-                              photos[index].isexpanded = !photos[index].isexpanded;
-                            });
-                          },
-                          onDoubleTap: () => Navigator.push(
-                            context, 
-                            MaterialPageRoute(
-                              builder: (context) => PhotoDetailsScreen(
-                                image: photos[index].image,
-                                caption: photos[index].caption,
-                                entry: photos[index].entry,
-                                date: photos[index].date,
-                                onCaptionEdit: () => _editCaption(index),
-                                onEntryEdit: () => _editEntry(index),
-                              ),
-                            ),
-                          ),
-                          child: _buildImageWidget(photos[index].image),
-                        ),
-                      ),
-                      GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            photos[index].isexpanded = !photos[index].isexpanded;
-                          });
-                        },
-                        onDoubleTap: () => _editCaption(index),
-                        child: Padding(
-                          padding: const EdgeInsets.all(10),
-                          child: Text(
-                            photos[index].caption, 
-                            style: const TextStyle(
-                              fontSize: 18, 
-                              fontWeight: FontWeight.bold, 
-                              fontFamily: 'Cursive'
-                            )
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.history),
+            tooltip: "Memory Lane",
+            color: Colors.white,
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => MemoryLaneScreen(photos: photos),
                 ),
-                // Entry container that shows/hides based on isexpanded
-                if (photos[index].isexpanded)
-                  GestureDetector(
-                    onDoubleTap: () => _editEntry(index),
-                    child: Container(
-                      padding: const EdgeInsets.all(12),
+              );
+            },
+          ),
+        ],
+      ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return ListView.builder(
+            itemCount: photos.length,
+            itemBuilder: (context, index) {
+              return Padding(
+                padding: EdgeInsets.symmetric(
+                  vertical: 10.h, 
+                  horizontal: 15.w
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Container(
                       decoration: BoxDecoration(
-                        color: Colors.pink[50],
-                        borderRadius: BorderRadius.only(
-                          bottomLeft: Radius.circular(10),
-                          bottomRight: Radius.circular(10),
-                        ),
+                        color: Colors.white,
+                        border: Border.all(color: Colors.grey.shade300, width: 4),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Colors.black26, 
+                            blurRadius: 6, 
+                            spreadRadius: 2, 
+                            offset: Offset(3, 5)
+                          )
+                        ],
                       ),
                       child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            'Date: ${DateFormat('MMMM d, yyyy').format(photos[index].date)}',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.pink[800],
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Stack(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    setState(() {
+                                      photos[index].isexpanded = !photos[index].isexpanded;
+                                    });
+                                  },
+                                  onDoubleTap: () => Navigator.push(
+                                    context, 
+                                    MaterialPageRoute(
+                                      builder: (context) => PhotoDetailsScreen(
+                                        image: photos[index].image,
+                                        caption: photos[index].caption,
+                                        entry: photos[index].entry,
+                                        date: photos[index].date,
+                                        onCaptionEdit: () => _editCaption(index),
+                                        onEntryEdit: () => _editEntry(index),
+                                      ),
+                                    ),
+                                  ),
+                                  child: _buildImageWidget(photos[index].image),
+                                ),
+                              ),
+                              Positioned(
+                                top: 10,
+                                right: 10,
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.delete, 
+                                    color: Colors.white.withOpacity(0.7),
+                                    size: 30.sp,
+                                  ),
+                                  onPressed: () => _deleteEntry(index),
+                                ),
+                              ),
+                            ],
                           ),
-                          SizedBox(height: 8),
-                          Text(
-                            photos[index].entry,
-                            style: const TextStyle(
-                              fontSize: 16,
-                              fontStyle: FontStyle.italic,
+                          GestureDetector(
+                            onTap: () {
+                              setState(() {
+                                photos[index].isexpanded = !photos[index].isexpanded;
+                              });
+                            },
+                            onDoubleTap: () => _editCaption(index),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12),
+                              child: Text(
+                                photos[index].caption, 
+                                style: TextStyle(
+                                  fontSize: 18.sp, 
+                                  fontWeight: FontWeight.bold, 
+                                  fontFamily: 'Cursive'
+                                )
+                              ),
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
-              ],
-            ),
+                    if (photos[index].isexpanded)
+                      GestureDetector(
+                        onDoubleTap: () => _editEntry(index),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.pink[50],
+                            borderRadius: BorderRadius.only(
+                              bottomLeft: Radius.circular(10),
+                              bottomRight: Radius.circular(10),
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Date: ${DateFormat('MMMM d, yyyy').format(photos[index].date)}',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Colors.pink[800],
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                photos[index].entry,
+                                style: TextStyle(
+                                  fontSize: 16.sp,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              );
+            },
           );
         },
       ),
@@ -360,18 +501,18 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
         ? AssetImage(imagePath)
         : FileImage(File(imagePath)),
       width: double.infinity,
-      height: 300,
+      height: 300.h,
       fit: BoxFit.cover,
       errorBuilder: (context, error, stackTrace) {
         print('Error loading image: $error');
         return Container(
           width: double.infinity,
-          height: 300,
+          height: 300.h,
           color: Colors.grey[300],
           child: Center(
             child: Text(
               'Failed to load image',
-              style: TextStyle(color: Colors.red),
+              style: TextStyle(color: Colors.red, fontSize: 14.sp),
             ),
           ),
         );
@@ -402,29 +543,29 @@ class PhotoDetailsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("📷 Photo Details"),
+        title: Text("📷 Photo Details", style: TextStyle(fontSize: 20.sp)),
         backgroundColor: Colors.pinkAccent,
         actions: [
           IconButton(
-            icon: Icon(Icons.edit),
+            icon: Icon(Icons.edit, size: 24.sp),
             onPressed: () {
               showDialog(
                 context: context,
                 builder: (context) {
                   return AlertDialog(
-                    title: Text("Edit Details"),
+                    title: Text("Edit Details", style: TextStyle(fontSize: 18.sp)),
                     content: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         ListTile(
-                          title: Text('Edit Caption'),
+                          title: Text('Edit Caption', style: TextStyle(fontSize: 16.sp)),
                           onTap: () {
                             Navigator.pop(context);
                             onCaptionEdit?.call();
                           },
                         ),
                         ListTile(
-                          title: Text('Edit Entry'),
+                          title: Text('Edit Entry', style: TextStyle(fontSize: 16.sp)),
                           onTap: () {
                             Navigator.pop(context);
                             onEntryEdit?.call();
@@ -446,7 +587,7 @@ class PhotoDetailsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Container(
-                width: 350,
+                width: 350.w,
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(15),
@@ -467,18 +608,18 @@ class PhotoDetailsScreen extends StatelessWidget {
                         image: image.startsWith('assets/') 
                           ? AssetImage(image)
                           : FileImage(File(image)),
-                        width: 350,
-                        height: 350,
+                        width: 350.w,
+                        height: 350.h,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) {
                           return Container(
-                            width: 350,
-                            height: 350,
+                            width: 350.w,
+                            height: 350.h,
                             color: Colors.grey[300],
                             child: Center(
                               child: Text(
                                 'Failed to load image',
-                                style: TextStyle(color: Colors.red),
+                                style: TextStyle(color: Colors.red, fontSize: 14.sp),
                               ),
                             ),
                           );
@@ -493,25 +634,25 @@ class PhotoDetailsScreen extends StatelessWidget {
                           Text(
                             caption,
                             style: TextStyle(
-                              fontSize: 22,
+                              fontSize: 22.sp,
                               fontWeight: FontWeight.bold,
                               color: Colors.pink[800],
                             ),
                             textAlign: TextAlign.center,
                           ),
-                          SizedBox(height: 10),
+                          SizedBox(height: 10.h),
                           Text(
                             DateFormat('MMMM d, yyyy').format(date),
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 16.sp,
                               color: Colors.grey[700],
                             ),
                           ),
-                          SizedBox(height: 16),
+                          SizedBox(height: 16.h),
                           Text(
                             entry,
                             style: TextStyle(
-                              fontSize: 18,
+                              fontSize: 18.sp,
                               fontStyle: FontStyle.italic,
                               color: Colors.black87,
                             ),
@@ -528,5 +669,176 @@ class PhotoDetailsScreen extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+class MemoryLaneScreen extends StatelessWidget {
+  final List<PhotoEntry> photos;
+
+  const MemoryLaneScreen({required this.photos, super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    photos.sort((a, b) => b.date.compareTo(a.date));
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          "📖 Memory Lane",
+          style: TextStyle(
+            fontSize: 20.sp,
+            color: Colors.white,
+          ),
+        ),
+        backgroundColor: const Color.fromARGB(255, 108, 54, 150),
+        elevation: 5,
+        shadowColor: const Color.fromARGB(255, 121, 84, 240),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color.fromARGB(255, 127, 88, 206),
+                const Color.fromARGB(255, 93, 3, 109)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Stack(
+          children: [
+            // Vertical Timeline Line
+            Positioned(
+              left: 10.w, 
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 5.w,
+                color: Colors.purpleAccent.withOpacity(0.5), 
+              ),
+            ),
+            ListView.builder(
+              itemCount: photos.length,
+              itemBuilder: (context, index) {
+                final photo = photos[index];
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (index == 0 || !isSameDay(photo.date, photos[index - 1].date))
+                      Padding(
+                        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 25.w),
+                        child: Text(
+                          DateFormat('MMMM d, yyyy').format(photo.date),
+                          style: TextStyle(
+                            fontSize: 18.sp,
+                            fontWeight: FontWeight.bold,
+                            color: const Color.fromARGB(255, 26, 29, 184),
+                          ),
+                        ),
+                      ),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Timeline Indicator (Dot)
+                        Container(
+                          margin: EdgeInsets.only(left: 6.w, right: 12.w, top: 8.h),
+                          width: 12.w,
+                          height: 12.h,
+                          decoration: const BoxDecoration(
+                            color: Color.fromARGB(255, 131, 4, 205),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => PhotoDetailsScreen(
+                                    image: photo.image,
+                                    caption: photo.caption,
+                                    entry: photo.entry,
+                                    date: photo.date,
+                                    onCaptionEdit: () {},
+                                    onEntryEdit: () {},
+                                  ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              elevation: 3,
+                              margin: EdgeInsets.symmetric(vertical: 8.h),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Center( 
+                                      child:  ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Image(
+                                          image: photo.image.startsWith('assets/')
+                                              ? AssetImage(photo.image)
+                                              : FileImage(File(photo.image)) as ImageProvider,
+                                          height: 300.h,
+                                          fit: BoxFit.cover,
+                                          errorBuilder: (context, error, stackTrace) {
+                                            return Container(
+                                              width: 80.w,
+                                              height: 80.h,
+                                              color: Colors.grey[300],
+                                              child: const Icon(Icons.image_not_supported),
+                                            );
+                                          },
+                                        ),
+                                      )
+                                    ),
+                                    SizedBox(width: 12.w),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          photo.caption,
+                                          style: TextStyle(
+                                            fontSize: 16.sp,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                        SizedBox(height: 4.h),
+                                        Text(
+                                          photo.entry.length > 50
+                                              ? '${photo.entry.substring(0, 50)}...'
+                                              : photo.entry,
+                                          style: TextStyle(
+                                            fontSize: 14.sp,
+                                            color: Colors.black54,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
   }
 }
