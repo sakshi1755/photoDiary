@@ -203,18 +203,39 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
+          appBar: AppBar(
         title: const Text(
           '🌸 Photo Diary 🌸',
           style: TextStyle(
-            fontFamily: 'Pacifico', 
-            fontSize: 26, 
-            fontWeight: FontWeight.w300, 
-            color: Colors.white
+            fontFamily: 'Pacifico',
+            fontSize: 26,
+            fontWeight: FontWeight.w300,
+            color: Colors.white,
           ),
         ),
         backgroundColor: Colors.pinkAccent,
         centerTitle: true,
+        elevation: 10,
+        shadowColor: const Color.fromARGB(255, 193, 3, 66),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(bottom: Radius.circular(0)),
+          side: BorderSide(
+            color: Colors.black,
+            width: 3,
+          ),
+        ),
+        flexibleSpace: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                const Color.fromARGB(255, 227, 17, 87),
+                const Color.fromARGB(255, 120, 5, 140)
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+        ),
       ),
       body: ListView.builder(
         itemCount: photos.length,
