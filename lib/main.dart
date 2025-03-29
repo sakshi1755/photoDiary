@@ -10,7 +10,6 @@ void main() {
   runApp(
     ScreenUtilInit(
       designSize: const Size(360, 690), // Base design size
-      //minTextAdaptWidth: 350,
       splitScreenMode: true,
       builder: (context, child) => const MyApp(),
     ),
@@ -60,36 +59,7 @@ class PhotoListScreen extends StatefulWidget {
 }
 
 class _PhotoListScreenState extends State<PhotoListScreen> {
-  List<PhotoEntry> photos = [
-    PhotoEntry(
-      image: 'assets/photo1.png',
-      caption: 'Inter IIT Cult at patna',
-      entry: 'This was a magical evening in patna, after my play.',
-      date: DateTime(2024, 12, 31),
-      isexpanded: false
-    ),
-    PhotoEntry(
-      image: 'assets/photo2.png',
-      caption: 'Ethnic night at IIT bhilai by EBSB',
-      entry: 'Was wearing a preety half saree and had a lot of fun.',
-      date: DateTime(2025, 1, 25),
-      isexpanded: false
-    ),
-    PhotoEntry(
-      image: 'assets/photo3.jpg',
-      caption: 'Just some pretty selfies',
-      entry: 'Just took a lot of selfies at IIT patna . The view from the top of their hostel was absolutely breathtaking.',
-      date: DateTime(2024, 12, 31),
-      isexpanded: false
-    ),
-    PhotoEntry(
-      image: 'assets/photo4.jpg',
-      caption: 'Just a mirror selfie before going out ',
-      entry: 'A great day spent laughing, eating lot of food, and making memories.',
-      date: DateTime(2025, 1, 14),
-      isexpanded: false
-    ),
-  ];
+  List<PhotoEntry> photos = [];
 
   @override
   void initState() {
@@ -340,156 +310,192 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
             ),
           ),
         ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.history),
-            tooltip: "Memory Lane",
-            color: Colors.white,
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => MemoryLaneScreen(photos: photos),
-                ),
-              );
-            },
-          ),
-        ],
+        actions: photos.isNotEmpty 
+          ? [
+              IconButton(
+                icon: const Icon(Icons.history),
+                tooltip: "Memory Lane",
+                color: Colors.white,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => MemoryLaneScreen(photos: photos),
+                    ),
+                  );
+                },
+              ),
+            ]
+          : null,
       ),
-      body: LayoutBuilder(
-        builder: (context, constraints) {
-          return ListView.builder(
-            itemCount: photos.length,
-            itemBuilder: (context, index) {
-              return Padding(
-                padding: EdgeInsets.symmetric(
-                  vertical: 10.h, 
-                  horizontal: 15.w
+      body: photos.isEmpty 
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.photo_album_outlined, 
+                  size: 100.sp, 
+                 // color: Colors.pink[200]
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        border: Border.all(color: Colors.grey.shade300, width: 4),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Colors.black26, 
-                            blurRadius: 6, 
-                            spreadRadius: 2, 
-                            offset: Offset(3, 5)
-                          )
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Stack(
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.all(8.0),
-                                child: GestureDetector(
-                                  onTap: () {
-                                    setState(() {
-                                      photos[index].isexpanded = !photos[index].isexpanded;
-                                    });
-                                  },
-                                  onDoubleTap: () => Navigator.push(
-                                    context, 
-                                    MaterialPageRoute(
-                                      builder: (context) => PhotoDetailsScreen(
-                                        image: photos[index].image,
-                                        caption: photos[index].caption,
-                                        entry: photos[index].entry,
-                                        date: photos[index].date,
-                                        onCaptionEdit: () => _editCaption(index),
-                                        onEntryEdit: () => _editEntry(index),
-                                      ),
-                                    ),
-                                  ),
-                                  child: _buildImageWidget(photos[index].image),
-                                ),
-                              ),
-                              Positioned(
-                                top: 10,
-                                right: 10,
-                                child: IconButton(
-                                  icon: Icon(
-                                    Icons.delete, 
-                                    color: Colors.white.withOpacity(0.7),
-                                    size: 30.sp,
-                                  ),
-                                  onPressed: () => _deleteEntry(index),
-                                ),
-                              ),
+                SizedBox(height: 20.h),
+                Text(
+                  'No Memories Yet',
+                  style: TextStyle(
+                    fontSize: 22.sp, 
+                  //  color: Colors.pink[300],
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+                SizedBox(height: 10.h),
+                Text(
+                  'Tap the camera button to start your photo diary',
+                  style: TextStyle(
+                    fontSize: 16.sp, 
+                 //   color: Colors.pink[200]
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          )
+        : LayoutBuilder(
+            builder: (context, constraints) {
+              return ListView.builder(
+                itemCount: photos.length,
+                itemBuilder: (context, index) {
+                  return Padding(
+                    padding: EdgeInsets.symmetric(
+                      vertical: 10.h, 
+                      horizontal: 15.w
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            border: Border.all(color: Colors.grey.shade300, width: 4),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26, 
+                                blurRadius: 6, 
+                                spreadRadius: 2, 
+                                offset: Offset(3, 5)
+                              )
                             ],
                           ),
-                          GestureDetector(
-                            onTap: () {
-                              setState(() {
-                                photos[index].isexpanded = !photos[index].isexpanded;
-                              });
-                            },
-                            onDoubleTap: () => _editCaption(index),
-                            child: Padding(
-                              padding: const EdgeInsets.all(12),
-                              child: Text(
-                                photos[index].caption, 
-                                style: TextStyle(
-                                  fontSize: 18.sp, 
-                                  fontWeight: FontWeight.bold, 
-                                  fontFamily: 'Cursive'
-                                )
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (photos[index].isexpanded)
-                      GestureDetector(
-                        onDoubleTap: () => _editEntry(index),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: Colors.pink[50],
-                            borderRadius: BorderRadius.only(
-                              bottomLeft: Radius.circular(10),
-                              bottomRight: Radius.circular(10),
-                            ),
-                          ),
                           child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                'Date: ${DateFormat('MMMM d, yyyy').format(photos[index].date)}',
-                                style: TextStyle(
-                                  fontSize: 14.sp,
-                                  color: Colors.pink[800],
-                                  fontWeight: FontWeight.bold,
-                                ),
+                              Stack(
+                                children: [
+                                  Padding(
+                                    padding: const EdgeInsets.all(8.0),
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          photos[index].isexpanded = !photos[index].isexpanded;
+                                        });
+                                      },
+                                      onDoubleTap: () => Navigator.push(
+                                        context, 
+                                        MaterialPageRoute(
+                                          builder: (context) => PhotoDetailsScreen(
+                                            image: photos[index].image,
+                                            caption: photos[index].caption,
+                                            entry: photos[index].entry,
+                                            date: photos[index].date,
+                                            onCaptionEdit: () => _editCaption(index),
+                                            onEntryEdit: () => _editEntry(index),
+                                          ),
+                                        ),
+                                      ),
+                                      child: _buildImageWidget(photos[index].image),
+                                    ),
+                                  ),
+                                  Positioned(
+                                    top: 10,
+                                    right: 10,
+                                    child: IconButton(
+                                      icon: Icon(
+                                        Icons.delete, 
+                                        color: Colors.white.withOpacity(0.7),
+                                        size: 30.sp,
+                                      ),
+                                      onPressed: () => _deleteEntry(index),
+                                    ),
+                                  ),
+                                ],
                               ),
-                              SizedBox(height: 8.h),
-                              Text(
-                                photos[index].entry,
-                                style: TextStyle(
-                                  fontSize: 16.sp,
-                                  fontStyle: FontStyle.italic,
+                              GestureDetector(
+                                onTap: () {
+                                  setState(() {
+                                    photos[index].isexpanded = !photos[index].isexpanded;
+                                  });
+                                },
+                                onDoubleTap: () => _editCaption(index),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Text(
+                                    photos[index].caption, 
+                                    style: TextStyle(
+                                      fontSize: 18.sp, 
+                                      fontWeight: FontWeight.bold, 
+                                      fontFamily: 'Cursive'
+                                    )
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                         ),
-                      ),
-                  ],
-                ),
+                        if (photos[index].isexpanded)
+                          GestureDetector(
+                            onDoubleTap: () => _editEntry(index),
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.pink[50],
+                                borderRadius: BorderRadius.only(
+                                  bottomLeft: Radius.circular(10),
+                                  bottomRight: Radius.circular(10),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Date: ${DateFormat('MMMM d, yyyy').format(photos[index].date)}',
+                                    style: TextStyle(
+                                      fontSize: 14.sp,
+                                      color: Colors.pink[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  SizedBox(height: 8.h),
+                                  Text(
+                                    photos[index].entry,
+                                    style: TextStyle(
+                                      fontSize: 16.sp,
+                                      fontStyle: FontStyle.italic,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               );
             },
-          );
-        },
-      ),
+          ),
       floatingActionButton: FloatingActionButton(
         onPressed: _pickImage,
+       // backgroundColor: photos.isEmpty 
+         // ? const Color.fromARGB(255, 227, 17, 87) 
+          //: null,
         child: const Icon(Icons.add_a_photo),
       ),
     );
@@ -499,7 +505,7 @@ class _PhotoListScreenState extends State<PhotoListScreen> {
     return Image(
       image: imagePath.startsWith('assets/') 
         ? AssetImage(imagePath)
-        : FileImage(File(imagePath)),
+        : FileImage(File(imagePath)) as ImageProvider,
       width: double.infinity,
       height: 300.h,
       fit: BoxFit.cover,
@@ -607,7 +613,7 @@ class PhotoDetailsScreen extends StatelessWidget {
                       child: Image(
                         image: image.startsWith('assets/') 
                           ? AssetImage(image)
-                          : FileImage(File(image)),
+                          : FileImage(File(image)) as ImageProvider,
                         width: 350.w,
                         height: 350.h,
                         fit: BoxFit.cover,
@@ -679,7 +685,8 @@ class MemoryLaneScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    photos.sort((a, b) => b.date.compareTo(a.date));
+    final sortedPhotos = List<PhotoEntry>.from(photos)
+      ..sort((a, b) => b.date.compareTo(a.date));
 
     return Scaffold(
       appBar: AppBar(
@@ -706,135 +713,165 @@ class MemoryLaneScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Stack(
-          children: [
-            // Vertical Timeline Line
-            Positioned(
-              left: 10.w, 
-              top: 0,
-              bottom: 0,
-              child: Container(
-                width: 5.w,
-                color: Colors.purpleAccent.withOpacity(0.5), 
-              ),
+      body: sortedPhotos.isEmpty
+        ? Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.history_toggle_off, 
+                  size: 80.sp, 
+                  color: Colors.purple[200]
+                ),
+                SizedBox(height: 20.h),
+                Text(
+                  'No Memories to Display',
+                  style: TextStyle(
+                    fontSize: 20.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.purple[300],
+                  ),
+                ),
+                SizedBox(height: 10.h),
+                Text(
+                  'Add some photos to your diary first',
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    color: Colors.purple[200],
+                  ),
+                ),
+              ],
             ),
-            ListView.builder(
-              itemCount: photos.length,
-              itemBuilder: (context, index) {
-                final photo = photos[index];
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (index == 0 || !isSameDay(photo.date, photos[index - 1].date))
-                      Padding(
-                        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 25.w),
-                        child: Text(
-                          DateFormat('MMMM d, yyyy').format(photo.date),
-                          style: TextStyle(
-                            fontSize: 18.sp,
-                            fontWeight: FontWeight.bold,
-                            color: const Color.fromARGB(255, 26, 29, 184),
-                          ),
-                        ),
-                      ),
-                    Row(
+          )
+        : Padding(
+            padding: const EdgeInsets.all(16),
+            child: Stack(
+              children: [
+                // Vertical Timeline Line
+                Positioned(
+                  left: 10.w, 
+                  top: 0,
+                  bottom: 0,
+                  child: Container(
+                    width: 5.w,
+                    color: Colors.purpleAccent.withOpacity(0.5), 
+                  ),
+                ),
+                ListView.builder(
+                  itemCount: sortedPhotos.length,
+                  itemBuilder: (context, index) {
+                    final photo = sortedPhotos[index];
+                    return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Timeline Indicator (Dot)
-                        Container(
-                          margin: EdgeInsets.only(left: 6.w, right: 12.w, top: 8.h),
-                          width: 12.w,
-                          height: 12.h,
-                          decoration: const BoxDecoration(
-                            color: Color.fromARGB(255, 131, 4, 205),
-                            shape: BoxShape.circle,
-                          ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => PhotoDetailsScreen(
-                                    image: photo.image,
-                                    caption: photo.caption,
-                                    entry: photo.entry,
-                                    date: photo.date,
-                                    onCaptionEdit: () {},
-                                    onEntryEdit: () {},
-                                  ),
-                                ),
-                              );
-                            },
-                            child: Card(
-                              elevation: 3,
-                              margin: EdgeInsets.symmetric(vertical: 8.h),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center( 
-                                      child:  ClipRRect(
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Image(
-                                          image: photo.image.startsWith('assets/')
-                                              ? AssetImage(photo.image)
-                                              : FileImage(File(photo.image)) as ImageProvider,
-                                          height: 300.h,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) {
-                                            return Container(
-                                              width: 80.w,
-                                              height: 80.h,
-                                              color: Colors.grey[300],
-                                              child: const Icon(Icons.image_not_supported),
-                                            );
-                                          },
-                                        ),
-                                      )
-                                    ),
-                                    SizedBox(width: 12.w),
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          photo.caption,
-                                          style: TextStyle(
-                                            fontSize: 16.sp,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                        SizedBox(height: 4.h),
-                                        Text(
-                                          photo.entry.length > 50
-                                              ? '${photo.entry.substring(0, 50)}...'
-                                              : photo.entry,
-                                          style: TextStyle(
-                                            fontSize: 14.sp,
-                                            color: Colors.black54,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                        if (index == 0 || !isSameDay(photo.date, sortedPhotos[index - 1].date))
+                          Padding(
+                            padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 25.w),
+                            child: Text(
+                              DateFormat('MMMM d, yyyy').format(photo.date),
+                              style: TextStyle(
+                                fontSize: 18.sp,
+                                fontWeight: FontWeight.bold,
+                                color: const Color.fromARGB(255, 26, 29, 184),
                               ),
                             ),
                           ),
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Timeline Indicator (Dot)
+                            Container(
+                              margin: EdgeInsets.only(left: 6.w, right: 12.w, top: 8.h),
+                              width: 12.w,
+                              height: 12.h,
+                              decoration: const BoxDecoration(
+                                color: Color.fromARGB(255, 131, 4, 205),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            Expanded(
+                              child: GestureDetector(
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => PhotoDetailsScreen(
+                                        image: photo.image,
+                                        caption: photo.caption,
+                                        entry: photo.entry,
+                                        date: photo.date,
+                                        onCaptionEdit: null,
+                                        onEntryEdit: null,
+                                      ),
+                                    ),
+                                  );
+                                },
+                                child: Card(
+                                  elevation: 3,
+                                  margin: EdgeInsets.symmetric(vertical: 8.h),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(12),
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Center( 
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(8),
+                                            child: Image(
+                                              image: photo.image.startsWith('assets/')
+                                                  ? AssetImage(photo.image)
+                                                  : FileImage(File(photo.image)) as ImageProvider,
+                                              height: 300.h,
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) {
+                                                return Container(
+                                                  width: 80.w,
+                                                  height: 80.h,
+                                                  color: Colors.grey[300],
+                                                  child: const Icon(Icons.image_not_supported),
+                                                );
+                                              },
+                                            ),
+                                          )
+                                        ),
+                                        SizedBox(height: 12.h),
+                                        Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              photo.caption,
+                                              style: TextStyle(
+                                                fontSize: 16.sp,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            SizedBox(height: 4.h),
+                                            Text(
+                                              photo.entry.length > 50
+                                                  ? '${photo.entry.substring(0, 50)}...'
+                                                  : photo.entry,
+                                              style: TextStyle(
+                                                fontSize: 14.sp,
+                                                color: Colors.black54,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
-                );
-              },
+                    );
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
